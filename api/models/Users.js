@@ -10,5 +10,6 @@ module.exports = {
     nama: { type: "string", required: true },
     username: { type: "string", required: true, unique: true },
     password: { type: "string", required: true },
+    photo: { type: "string", required: true },
   },
 };

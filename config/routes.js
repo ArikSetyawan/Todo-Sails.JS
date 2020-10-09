@@ -11,6 +11,8 @@
 const TodosController = require("../api/controllers/TodosController");
 const Todos = require("../api/models/Todos");
 const AuthController = require("../api/controllers/AuthController");
+const UsersController = require("../api/controllers/UsersController");
+const FilesController = require("../api/controllers/FilesController");
 
 module.exports.routes = {
   /***************************************************************************
@@ -31,6 +33,9 @@ module.exports.routes = {
   "get /users/edit/:id": "UsersController.edit_form",
   "post /users/edit/:id": "UsersController.edit",
   "get /users/remove/:id": "UsersController.delete",
+  "get /profile/": "UsersController.profile",
+  "post /set_profile/": "UsersController.set_profile",
+  "get /profile/remove_photo/": "UsersController.remove_photo_profile",
 
   // auth
   "get /login/": "AuthController.login_form",
@@ -46,6 +51,9 @@ module.exports.routes = {
   "post /todos/edit/:id": "TodosController.update",
   "get /todos/mark/:id": "TodosController.complete",
   "get /todos/remove/:id": "TodosController.remove",
+
+  // Files Route
+  "get /files/": "FilesController.send_image",
 
   /***************************************************************************
    *                                                                          *

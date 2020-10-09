@@ -4,11 +4,13 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
+const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 
 module.exports = {
   index: async (req, res) => {
     const params = req.params.id;
-    console.log(params);
     if (!params) {
       const data = await Users.find();
       return res.view("pages/users", { data_user: data });
@@ -32,6 +34,7 @@ module.exports = {
         nama: data.nama,
         username: data.username,
         password: data.password,
+        photo: "user_profile_default.png",
       });
       return res.redirect("/users/");
     } catch (error) {
@@ -94,5 +97,69 @@ module.exports = {
     // remove user
     const remove_user = await Users.destroy({ id: params });
     return res.redirect("/users");
+  },
+
+  profile: async (req, res) => {
+    if (!req.session.loggedin) {
+      return res.redirect("/login/");
+    }
+    // get users data
+    const data_user = await Users.findOne({ id: req.session.id_user });
+    return res.view("pages/profile", { data_user: data_user });
+  },
+
+  set_profile: async (req, res) => {
+    // cek apakah sudah login
+    const FILEDIR = "../../assets/images/";
+    if (!req.session.loggedin) {
+      return res.redirect("/login/");
+    }
+
+    // get user
+    const user = await Users.findOne({ id: req.session.id_user });
+    if (!(user.photo === "user_profile_default.png")) {
+      fs.unlinkSync(
+        path.join(__dirname, "../", "../", "assets", "images", user.photo)
+      );
+    }
+
+    const ext = req.file("photo")._files[0].stream.filename.split(".")[1];
+    const filename = `${crypto.randomBytes(20).toString("hex")}.${ext}`;
+    // update user photo
+    const update_user = await Users.update(
+      { id: req.session.id_user },
+      { photo: filename }
+    );
+    const upload_file = await req.file("photo").upload(
+      {
+        dirname: process.cwd() + "/assets/images",
+        saveAs: filename,
+        maxBytes: 10000000,
+      },
+      (err, uploadedFiles) => {
+        if (err) return res.serverError(err);
+      }
+    );
+    return res.redirect("/profile/");
+  },
+
+  remove_photo_profile: async (req, res) => {
+    if (!req.session.loggedin) {
+      return res.redirect("/login/");
+    }
+    // get user
+    const user = await Users.findOne({ id: req.session.id_user });
+    if (!(user.photo === "user_profile_default.png")) {
+      const update_user = await Users.update(
+        { id: req.session.id_user },
+        { photo: "user_profile_default.png" }
+      );
+      fs.unlinkSync(
+        path.join(__dirname, "../", "../", "assets", "images", user.photo)
+      );
+      return res.redirect("/profile/");
+    } else {
+      return res.redirect("/profile/");
+    }
   },
 };
